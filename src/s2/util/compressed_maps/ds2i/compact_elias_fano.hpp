@@ -260,6 +260,12 @@ struct compact_elias_fano {
             return m_position;
         }
 
+        inline value_type value() const
+        {
+            return value_type(m_position, m_value);
+        }
+
+
     private:
         value_type QS_NOINLINE slow_move(uint64_t position)
         {
@@ -335,11 +341,6 @@ struct compact_elias_fano {
         }
 
         static const uint64_t linear_scan_threshold = 8;
-
-        inline value_type value() const
-        {
-            return value_type(m_position, m_value);
-        }
 
         inline uint64_t read_low()
         {

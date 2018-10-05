@@ -33,7 +33,7 @@
 // *all* points are returned, so you will always want to set either the
 // max_results() option or the max_distance() option (or both).
 //
-// This class is also available as S2ClosestPointQuery<Data>::Options.
+// This class is also available as S2ClosestPointQuery<Data,Index>::Options.
 // (It is defined here to avoid depending on the "Data" template argument.)
 class S2ClosestPointQueryOptions :
     public S2ClosestPointQueryBaseOptions<S2MinDistance> {
@@ -94,7 +94,7 @@ using S2ClosestPointQueryTarget = S2MinDistanceTarget;
 
 // Target subtype that computes the closest distance to a point.
 //
-// This class is also available as S2ClosestPointQuery<Data>::PointTarget.
+// This class is also available as S2ClosestPointQuery<Data,Index>::PointTarget.
 // (It is defined here to avoid depending on the "Data" template argument.)
 class S2ClosestPointQueryPointTarget final : public S2MinDistancePointTarget {
  public:
@@ -104,7 +104,7 @@ class S2ClosestPointQueryPointTarget final : public S2MinDistancePointTarget {
 
 // Target subtype that computes the closest distance to an edge.
 //
-// This class is also available as S2ClosestPointQuery<Data>::EdgeTarget.
+// This class is also available as S2ClosestPointQuery<Data,Index>::EdgeTarget.
 // (It is defined here to avoid depending on the "Data" template argument.)
 class S2ClosestPointQueryEdgeTarget final : public S2MinDistanceEdgeTarget {
  public:
@@ -115,7 +115,7 @@ class S2ClosestPointQueryEdgeTarget final : public S2MinDistanceEdgeTarget {
 // Target subtype that computes the closest distance to an S2Cell
 // (including the interior of the cell).
 //
-// This class is also available as S2ClosestPointQuery<Data>::CellTarget.
+// This class is also available as S2ClosestPointQuery<Data,Index>::CellTarget.
 // (It is defined here to avoid depending on the "Data" template argument.)
 class S2ClosestPointQueryCellTarget final : public S2MinDistanceCellTarget {
  public:
@@ -134,7 +134,7 @@ class S2ClosestPointQueryCellTarget final : public S2MinDistanceCellTarget {
 //
 // (see S2MinDistanceShapeIndexTarget for details).
 //
-// This class is also available as S2ClosestPointQuery<Data>::ShapeIndexTarget.
+// This class is also available as S2ClosestPointQuery<Data,Index>::ShapeIndexTarget.
 // (It is defined here to avoid depending on the "Data" template argument.)
 class S2ClosestPointQueryShapeIndexTarget final :
     public S2MinDistanceShapeIndexTarget {
@@ -197,18 +197,17 @@ class S2ClosestPointQueryShapeIndexTarget final :
 //
 // The implementation is designed to be fast for both small and large
 // point sets.
-template <class Data>
+template <class Data,class Index = S2PointIndex<Data>>
 class S2ClosestPointQuery {
  public:
   // See S2ClosestPointQueryBase for full documentation.
 
-  using Index = S2PointIndex<Data>;
   using PointData = typename Index::PointData;
 
   // S2MinDistance is a thin wrapper around S1ChordAngle that implements the
   // Distance concept required by S2ClosestPointQueryBase.
   using Distance = S2MinDistance;
-  using Base = S2ClosestPointQueryBase<Distance, Data>;
+  using Base = S2ClosestPointQueryBase<Distance, Data, Index>;
 
   // Each "Result" object represents a closest point.  Here are its main
   // methods (see S2ClosestPointQueryBase::Result for details):
@@ -358,79 +357,79 @@ inline S2ClosestPointQueryShapeIndexTarget::S2ClosestPointQueryShapeIndexTarget(
     : S2MinDistanceShapeIndexTarget(index) {
 }
 
-template <class Data>
-inline S2ClosestPointQuery<Data>::S2ClosestPointQuery(const Index* index,
+template <class Data,class Index>
+inline S2ClosestPointQuery<Data,Index>::S2ClosestPointQuery(const Index* index,
                                                       const Options& options) {
   Init(index, options);
 }
 
-template <class Data>
-S2ClosestPointQuery<Data>::S2ClosestPointQuery() {
+template <class Data,class Index>
+S2ClosestPointQuery<Data,Index>::S2ClosestPointQuery() {
   // Prevent inline constructor bloat by defining here.
 }
 
-template <class Data>
-S2ClosestPointQuery<Data>::~S2ClosestPointQuery() {
+template <class Data,class Index>
+S2ClosestPointQuery<Data,Index>::~S2ClosestPointQuery() {
   // Prevent inline destructor bloat by defining here.
 }
 
-template <class Data>
-void S2ClosestPointQuery<Data>::Init(const Index* index,
+template <class Data,class Index>
+void S2ClosestPointQuery<Data,Index>::Init(const Index* index,
                                      const Options& options) {
   options_ = options;
   base_.Init(index);
 }
 
-template <class Data>
-inline void S2ClosestPointQuery<Data>::ReInit() {
+template <class Data,class Index>
+inline void S2ClosestPointQuery<Data,Index>::ReInit() {
   base_.ReInit();
 }
 
-template <class Data>
-inline const S2PointIndex<Data>& S2ClosestPointQuery<Data>::index() const {
+template <class Data,class Index>
+inline const Index& S2ClosestPointQuery<Data,Index>::index() const {
   return base_.index();
 }
 
-template <class Data>
-inline const S2ClosestPointQueryOptions& S2ClosestPointQuery<Data>::options()
+template <class Data,class Index>
+inline const S2ClosestPointQueryOptions& S2ClosestPointQuery<Data,Index>::options()
     const {
   return options_;
 }
 
-template <class Data>
+template <class Data,class Index>
 inline S2ClosestPointQueryOptions*
-S2ClosestPointQuery<Data>::mutable_options() {
+S2ClosestPointQuery<Data,Index>::mutable_options() {
   return &options_;
 }
 
-template <class Data>
-inline std::vector<typename S2ClosestPointQuery<Data>::Result>
-S2ClosestPointQuery<Data>::FindClosestPoints(Target* target) {
+template <class Data,class Index>
+inline std::vector<typename S2ClosestPointQuery<Data,Index>::Result>
+S2ClosestPointQuery<Data,Index>::FindClosestPoints(Target* target) {
   return base_.FindClosestPoints(target, options_);
 }
 
-template <class Data>
-inline void S2ClosestPointQuery<Data>::FindClosestPoints(
+template <class Data,class Index>
+inline void S2ClosestPointQuery<Data,Index>::FindClosestPoints(
     Target* target, std::vector<Result>* results) {
   base_.FindClosestPoints(target, options_, results);
 }
 
-template <class Data>
-inline typename S2ClosestPointQuery<Data>::Result
-S2ClosestPointQuery<Data>::FindClosestPoint(Target* target) {
+template <class Data,class Index>
+inline typename S2ClosestPointQuery<Data,Index>::Result
+S2ClosestPointQuery<Data,Index>::FindClosestPoint(Target* target) {
   static_assert(sizeof(Options) <= 32, "Consider not copying Options here");
   Options tmp_options = options_;
   tmp_options.set_max_results(1);
   return base_.FindClosestPoint(target, tmp_options);
 }
 
-template <class Data>
-inline S1ChordAngle S2ClosestPointQuery<Data>::GetDistance(Target* target) {
+template <class Data,class Index>
+inline S1ChordAngle S2ClosestPointQuery<Data,Index>::GetDistance(Target* target) {
   return FindClosestPoint(target).distance();
 }
 
-template <class Data>
-bool S2ClosestPointQuery<Data>::IsDistanceLess(
+template <class Data,class Index>
+bool S2ClosestPointQuery<Data,Index>::IsDistanceLess(
     Target* target, S1ChordAngle limit) {
   static_assert(sizeof(Options) <= 32, "Consider not copying Options here");
   Options tmp_options = options_;
@@ -440,8 +439,8 @@ bool S2ClosestPointQuery<Data>::IsDistanceLess(
   return !base_.FindClosestPoint(target, tmp_options).is_empty();
 }
 
-template <class Data>
-bool S2ClosestPointQuery<Data>::IsDistanceLessOrEqual(
+template <class Data,class Index>
+bool S2ClosestPointQuery<Data,Index>::IsDistanceLessOrEqual(
     Target* target, S1ChordAngle limit) {
   static_assert(sizeof(Options) <= 32, "Consider not copying Options here");
   Options tmp_options = options_;
@@ -451,8 +450,8 @@ bool S2ClosestPointQuery<Data>::IsDistanceLessOrEqual(
   return !base_.FindClosestPoint(target, tmp_options).is_empty();
 }
 
-template <class Data>
-bool S2ClosestPointQuery<Data>::IsConservativeDistanceLessOrEqual(
+template <class Data,class Index>
+bool S2ClosestPointQuery<Data,Index>::IsConservativeDistanceLessOrEqual(
     Target* target, S1ChordAngle limit) {
   static_assert(sizeof(Options) <= 32, "Consider not copying Options here");
   Options tmp_options = options_;

@@ -103,7 +103,7 @@ public:
 
     class Iterator {
     public:
-        Iterator();
+        Iterator() {}
 
         // Convenience constructor that calls Init().
         explicit Iterator(const S2PointIndexStatic* index) {
@@ -191,11 +191,15 @@ public:
     };
 
 private:
-    friend class Iterator;
+    friend class const_iterator;
+    typedef Iterator const_iterator;
 
     S2PointIndexStatic(const S2PointIndexStatic&) = delete;
     void operator=(const S2PointIndexStatic&) = delete;
 };
+
+template<class Key>
+using S2PointIndexStaticEF = S2PointIndexStatic<Key,ef_map>;
 
 
 #endif // S2_S2POINT_INDEX_STATIC_H_

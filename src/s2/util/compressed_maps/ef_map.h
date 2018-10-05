@@ -26,44 +26,53 @@ public:
         typedef std::forward_iterator_tag iterator_category;
 
         quasi_succinct::compact_elias_fano::enumerator m_enum;
-        value_container_type& m_values;
-        pair_type m_cur_value;
+        const value_container_type* m_values = nullptr;
+        mutable pair_type m_cur_value;
 
-        const_iterator() = delete;
+        const_iterator() {
+
+        }
+
+        const_iterator(const const_iterator& other) {
+            m_enum = other.m_enum;
+            m_values = other.m_values;
+            m_cur_value = other.m_cur_value;
+        }
 
         const_iterator(const value_container_type& v,
                        const succinct::bit_vector& b,
                        size_type pos,
                        size_type universe,
                        size_type n,quasi_succinct::global_parameters const& params)
-            : m_enum(v), m_enum(b,0,universe,n,params)
+            : m_values(&v), m_enum(b,0,universe,n,params)
         {
             if(pos != n) m_enum.move(pos);
         }
 
-        self_type operator++(int junk) {
+        self_type operator++() {
             m_enum.next();
             return *this;
         }
 
-        self_type operator--(int junk) {
+        self_type operator--() {
+            std::cerr << "USING PREV!!!" << std::endl;
             m_enum.next(); // TODO
             return *this;
         }
 
-        bool operator==(const self_type& rhs) {
+        bool operator==(const self_type& rhs) const {
             return m_enum.position() == rhs.m_enum.position();
         }
 
         bool operator!=(const self_type& other) const {return !(*this == other);}
 
         const reference operator*() const {
-            m_cur_value = std::make_pair(m_enum.value().second,m_values[m_enum.position()]);
+            m_cur_value = std::make_pair(key_type(m_enum.value().second),(*m_values)[m_enum.position()]);
             return m_cur_value;
         }
 
         const pointer operator->() const {
-            m_cur_value = std::make_pair(m_enum.value().second,m_values[m_enum.position()]);
+            m_cur_value = std::make_pair(key_type(m_enum.value().second),(*m_values)[m_enum.position()]);
             return &m_cur_value;
         }
 
@@ -80,7 +89,7 @@ public:
 
     const_iterator lower_bound(const key_type &key) const {
         auto itr = begin();
-        return itr.lower_bound(key);
+        return itr.lower_bound(key.id());
     }
 
     void swap(ef_map &x) {

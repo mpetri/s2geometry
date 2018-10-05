@@ -141,11 +141,10 @@ class S2ClosestPointQueryBaseOptions {
 // used as long as it implements the Distance concept described in
 // s2distance_targets.h.  For example this can be used to measure maximum
 // distances, to get more accuracy, or to measure non-spheroidal distances.
-template <class Distance, class Data>
+template <class Distance, class Data,class Index>
 class S2ClosestPointQueryBase {
  public:
   using Delta = typename Distance::Delta;
-  using Index = S2PointIndex<Data>;
   using PointData = typename Index::PointData;
   using Options = S2ClosestPointQueryBaseOptions<Distance>;
 
@@ -394,60 +393,60 @@ inline void S2ClosestPointQueryBaseOptions<Distance>::set_use_brute_force(
   use_brute_force_ = use_brute_force;
 }
 
-template <class Distance, class Data>
-S2ClosestPointQueryBase<Distance, Data>::S2ClosestPointQueryBase() {
+template <class Distance, class Data, class Index>
+S2ClosestPointQueryBase<Distance, Data, Index>::S2ClosestPointQueryBase() {
 }
 
-template <class Distance, class Data>
-S2ClosestPointQueryBase<Distance, Data>::~S2ClosestPointQueryBase() {
+template <class Distance, class Data, class Index>
+S2ClosestPointQueryBase<Distance, Data, Index>::~S2ClosestPointQueryBase() {
   // Prevent inline destructor bloat by providing a definition.
 }
 
-template <class Distance, class Data>
-inline S2ClosestPointQueryBase<Distance, Data>::S2ClosestPointQueryBase(
-    const S2PointIndex<Data>* index) : S2ClosestPointQueryBase() {
+template <class Distance, class Data, class Index>
+inline S2ClosestPointQueryBase<Distance, Data, Index>::S2ClosestPointQueryBase(
+    const Index* index) : S2ClosestPointQueryBase() {
   Init(index);
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::Init(
-    const S2PointIndex<Data>* index) {
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::Init(
+    const Index* index) {
   index_ = index;
   ReInit();
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::ReInit() {
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::ReInit() {
   iter_.Init(index_);
   index_covering_.clear();
 }
 
-template <class Distance, class Data>
-inline const S2PointIndex<Data>&
-S2ClosestPointQueryBase<Distance, Data>::index() const {
+template <class Distance, class Data, class Index>
+inline const Index&
+S2ClosestPointQueryBase<Distance, Data, Index>::index() const {
   return *index_;
 }
 
-template <class Distance, class Data>
-inline std::vector<typename S2ClosestPointQueryBase<Distance, Data>::Result>
-S2ClosestPointQueryBase<Distance, Data>::FindClosestPoints(
+template <class Distance, class Data, class Index>
+inline std::vector<typename S2ClosestPointQueryBase<Distance, Data, Index>::Result>
+S2ClosestPointQueryBase<Distance, Data, Index>::FindClosestPoints(
     Target* target, const Options& options) {
   std::vector<Result> results;
   FindClosestPoints(target, options, &results);
   return results;
 }
 
-template <class Distance, class Data>
-typename S2ClosestPointQueryBase<Distance, Data>::Result
-S2ClosestPointQueryBase<Distance, Data>::FindClosestPoint(
+template <class Distance, class Data, class Index>
+typename S2ClosestPointQueryBase<Distance, Data, Index>::Result
+S2ClosestPointQueryBase<Distance, Data, Index>::FindClosestPoint(
     Target* target, const Options& options) {
   S2_DCHECK_EQ(options.max_results(), 1);
   FindClosestPointsInternal(target, options);
   return result_singleton_;
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::FindClosestPoints(
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::FindClosestPoints(
     Target* target, const Options& options, std::vector<Result>* results) {
   FindClosestPointsInternal(target, options);
   results->clear();
@@ -471,8 +470,8 @@ void S2ClosestPointQueryBase<Distance, Data>::FindClosestPoints(
   }
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::FindClosestPointsInternal(
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::FindClosestPointsInternal(
     Target* target, const Options& options) {
   target_ = target;
   options_ = &options;
@@ -532,15 +531,15 @@ void S2ClosestPointQueryBase<Distance, Data>::FindClosestPointsInternal(
   }
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::FindClosestPointsBruteForce() {
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::FindClosestPointsBruteForce() {
   for (iter_.Begin(); !iter_.done(); iter_.Next()) {
     MaybeAddResult(&iter_.point_data());
   }
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::FindClosestPointsOptimized() {
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::FindClosestPointsOptimized() {
   InitQueue();
   while (!queue_.empty()) {
     // We need to copy the top entry before removing it, and we need to remove
@@ -565,8 +564,8 @@ void S2ClosestPointQueryBase<Distance, Data>::FindClosestPointsOptimized() {
   }
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::InitQueue() {
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::InitQueue() {
   S2_DCHECK(queue_.empty());
 
   // Optimization: rather than starting with the entire index, see if we can
@@ -627,8 +626,8 @@ void S2ClosestPointQueryBase<Distance, Data>::InitQueue() {
   }
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::InitCovering() {
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::InitCovering() {
   // Compute the "index covering", which is a small number of S2CellIds that
   // cover the indexed points.  There are two cases:
   //
@@ -678,8 +677,8 @@ void S2ClosestPointQueryBase<Distance, Data>::InitCovering() {
 // Adds a cell to index_covering_ that covers the given inclusive range.
 //
 // REQUIRES: "first" and "last" have a common ancestor.
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::AddInitialRange(
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::AddInitialRange(
     S2CellId first_id, S2CellId last_id) {
   // Add the lowest common ancestor of the given range.
   int level = first_id.GetCommonAncestorLevel(last_id);
@@ -687,8 +686,8 @@ void S2ClosestPointQueryBase<Distance, Data>::AddInitialRange(
   index_covering_.push_back(first_id.parent(level));
 }
 
-template <class Distance, class Data>
-void S2ClosestPointQueryBase<Distance, Data>::MaybeAddResult(
+template <class Distance, class Data, class Index>
+void S2ClosestPointQueryBase<Distance, Data, Index>::MaybeAddResult(
     const PointData* point_data) {
   Distance distance = distance_limit_;
   if (!target_->UpdateMinDistance(point_data->point(), &distance)) return;
@@ -725,8 +724,8 @@ void S2ClosestPointQueryBase<Distance, Data>::MaybeAddResult(
 // Returns "true" if the cell was added to the queue, and "false" if it was
 // processed immediately, in which case "iter" is left positioned at the next
 // cell in S2CellId order.
-template <class Distance, class Data>
-bool S2ClosestPointQueryBase<Distance, Data>::ProcessOrEnqueue(
+template <class Distance, class Data, class Index>
+bool S2ClosestPointQueryBase<Distance, Data, Index>::ProcessOrEnqueue(
     S2CellId id, Iterator* iter, bool seek) {
   if (seek) iter->Seek(id.range_min());
   if (id.is_leaf()) {
