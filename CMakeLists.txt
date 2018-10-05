@@ -58,7 +58,7 @@ if (APPLE)
     set(CMAKE_MACOSX_RPATH TRUE)
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # No compiler-specific extensions, i.e. -std=c++11, not -std=gnu++11.
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -86,6 +86,10 @@ include_directories(
     ${GFLAGS_INCLUDE_DIRS} ${GLOG_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR}
     ${PYTHON_INCLUDE_DIRS})
 include_directories(src)
+include_directories(${CMAKE_SOURCE_DIR})
+
+# lets add succinct stuff
+add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/succinct EXCLUDE_FROM_ALL)
 
 add_library(s2
             src/s2/base/stringprintf.cc

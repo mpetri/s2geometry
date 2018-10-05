@@ -119,6 +119,11 @@ class S2PointIndex {
   // Returns the number of points in the index.
   int num_points() const;
 
+  // Returns the number of points in the index.
+  size_t bytes_used() const {
+    return map_.bytes_used();
+  }
+
   // Adds the given point to the index.  Invalidates all iterators.
   void Add(const S2Point& point, const Data& data);
   void Add(const PointData& point_data);

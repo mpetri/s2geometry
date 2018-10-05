@@ -12,7 +12,9 @@
 #include "s2/s1chord_angle.h"
 #include "s2/s2closest_point_query.h"
 #include "s2/s2point_index.h"
+#include "s2/s2point_index_static.h"
 #include "s2/s2testing.h"
+#include "s2/util/compressed_maps/compressed_maps.h"
 
 DEFINE_int32(num_index_points, 10000, "Number of points to index");
 DEFINE_int32(num_queries, 10000, "Number of queries");
@@ -24,6 +26,19 @@ int main(int argc, char **argv) {
   for (int i = 0; i < FLAGS_num_index_points; ++i) {
     index.Add(S2Testing::RandomPoint(), i);
   }
+
+  using static_index_type = S2PointIndexStatic<int,ef_map>;
+  static_index_type index_static;
+  {
+    static_index_type::builder index_static_builder;
+    for (int i = 0; i < FLAGS_num_index_points; ++i) {
+      index_static_builder.Add(S2Testing::RandomPoint(), i);
+    }
+    index_static_builder.build(index_static);
+  }
+
+  std::cout << "index bytes = " << index.bytes_used() << std::endl;
+  std::cout << "index_static bytes = " << index_static.bytes_used() << std::endl;
 
   // Create a query to search within the given radius of a target point.
   S2ClosestPointQuery<int> query(&index);
